@@ -1,0 +1,50 @@
+.container {
+  .card {
+    width: 70vw;
+    margin: auto;
+  }
+
+  .card-header {
+    font-size: 1.8rem;
+    font-weight: 500;
+  }
+
+  .card-body {
+    .text-danger {
+      font-size: 0.75rem;
+    }
+  }
+
+  .card-footer {
+    button {
+      font-size: 1.2rem;
+      width: 12rem;
+    }
+  }
+
+  .course-card {
+    width: 100%;
+    background-color: lightblue;
+    border: 1px solid cadetblue;
+    border-radius: 1rem;
+    padding: 0.5rem;
+
+    img {
+      width: 95%;
+      object-fit: cover;
+      border: 1px solid rgb(128, 128, 128);
+      border-radius: 1rem;
+      overflow: hidden;
+    }
+
+    h3 {
+      font-weight: 500;
+    }
+
+    .timestamp {
+      font-size: 0.75rem;
+      color: rgb(198, 201, 209);
+      font-weight: 400;
+    }
+  }
+}
