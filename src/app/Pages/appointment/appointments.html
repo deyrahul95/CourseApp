@@ -1,0 +1,48 @@
+<div class="container">
+  <div class="my-3">
+    <h2 class="my-2 text-primary">Current Appointments</h2>
+    @for (item of appointments; track $index) {
+      <div
+        class="bg-secondary-subtle border border-1 border-dark-subtle rounded-1 shadow-sm w-50 p-2 m-2"
+      >
+        <div class="d-flex justify-content-between">
+          <h4>{{ item.title }}</h4>
+          <button class="btn btn-outline-danger btn-sm" (click)="deleteAppointment($index)">
+            🗑️
+          </button>
+        </div>
+        <p>{{ item.date | date: 'dd-MM-yyyy' }}</p>
+      </div>
+    }
+
+    @if (appointments.length === 0) {
+      <p class="text-center w-50 d-block text-secondary my-3">No appointments for today!</p>
+    }
+  </div>
+
+  <div class="my-3">
+    <h3 class="my-2 text-primary">Create Appointment</h3>
+
+    <input
+      type="text"
+      name="title"
+      id="title"
+      placeholder="Appointment Description"
+      [(ngModel)]="newAppointment.title"
+      class="p-1 w-50 m-1"
+    />
+    <input
+      type="date"
+      name="date"
+      id="date"
+      placeholder="Appointment Date"
+      /* [(ngModel)]="newAppointment.date" // Don't use this here. This will gives a warning as the date format is different than required ('yyyy-MM-dd') format*/
+      [value]="newAppointment.date | date: 'yyyy-MM-dd'"
+      (change)="onDateChange($event)"
+      class="p-1 w-50 m-1"
+    />
+    <button type="submit" (click)="addAppointment()" class="btn btn-success w-25 m-1 d-block">
+      Add
+    </button>
+  </div>
+</div>
