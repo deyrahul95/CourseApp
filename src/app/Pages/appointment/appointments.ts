@@ -1,11 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Appointment } from '../../Models/appointment';
-import { FormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { InfoTooltip } from '../../Components/info-tooltip/info-tooltip';
 
 @Component({
   selector: 'app-appointment',
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, ReactiveFormsModule, InfoTooltip],
   templateUrl: './appointments.html',
   styleUrl: './appointments.scss',
 })
@@ -13,23 +20,56 @@ export class Appointments implements OnInit {
   private STORAGE_KEY: string = 'appointments';
 
   appointments: Appointment[] = [];
-  newAppointment: Appointment = {
-    id: Date.now(),
-    title: '',
-    date: new Date(),
-  };
+  appointmentForm: FormGroup = new FormGroup({});
+
+  constructor(private formBuilder: FormBuilder) {}
 
   ngOnInit(): void {
     this.appointments = this.retrieve();
+    this.appointmentForm = this.formBuilder.group({
+      title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
+      date: ['', Validators.required],
+      startTime: ['', Validators.required],
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.email,
+          Validators.pattern(/^[a-zA-Z0-9._%+-]+@(?:gmail\.com|outlook\.com|yahoo\.com)$/i),
+        ],
+      ],
+      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10,11}$/)]],
+    });
   }
 
-  addAppointment(): void {
-    if (this.newAppointment.title.trim().length && this.newAppointment.date) {
-      this.newAppointment.title = this.newAppointment.title.trim();
-      this.appointments.push(this.newAppointment);
-      this.store();
-      this.resetAppointment();
+  onPhoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digitsOnly = input.value.replace(/\D/g, '').slice(0, 11);
+
+    input.value = digitsOnly;
+    this.appointmentForm.controls['phone'].setValue(digitsOnly);
+  }
+
+  onSubmit(): void {
+    if (this.appointmentForm.invalid) {
+      alert('Please enter all required fields.');
+      return;
     }
+
+    const appointment: Appointment = {
+      id: Date.now(),
+      title: this.appointmentForm.get('title')?.value,
+      date: this.appointmentForm.get('date')?.value,
+      startTime: this.appointmentForm.get('startTime')?.value,
+      name: this.appointmentForm.get('name')?.value,
+      email: this.appointmentForm.get('email')?.value,
+      phone: this.appointmentForm.get('phone')?.value,
+    };
+
+    this.appointments.push(appointment);
+    this.store();
+    this.resetForm();
   }
 
   deleteAppointment(index: number) {
@@ -37,16 +77,9 @@ export class Appointments implements OnInit {
     this.store();
   }
 
-  onDateChange(event: any) {
-    this.newAppointment.date = new Date(event.target.value);
-  }
-
-  private resetAppointment(): void {
-    this.newAppointment = {
-      id: Date.now(),
-      title: '',
-      date: new Date(),
-    };
+  private resetForm(): void {
+    this.appointmentForm.markAsUntouched();
+    this.appointmentForm.reset();
   }
 
   private store(): void {

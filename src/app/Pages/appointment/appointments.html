@@ -11,7 +11,8 @@
             🗑️
           </button>
         </div>
-        <p>{{ item.date | date: 'dd-MM-yyyy' }}</p>
+        <p>{{ item.date | date: 'dd-MM-yyyy' }} | {{ item.startTime }}</p>
+        <p>{{ item.name }} | {{ item.email }} | {{ item.phone }}</p>
       </div>
     }
 
@@ -22,27 +23,220 @@
 
   <div class="my-3">
     <h3 class="my-2 text-primary">Create Appointment</h3>
+    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()" class="w-50 appointment-form">
+      <!-- Appointment Title -->
+      <div class="mb-3">
+        <label for="title" class="form-label">Appointment Title</label>
+        <input
+          id="title"
+          type="text"
+          placeholder="Appointment Title"
+          formControlName="title"
+          class="form-control"
+          [class.is-invalid]="
+            appointmentForm.controls['title'].touched && appointmentForm.controls['title'].invalid
+          "
+          [class.is-valid]="
+            appointmentForm.controls['title'].touched && appointmentForm.controls['title'].valid
+          "
+        />
+        @if (
+          appointmentForm.controls['title'].touched &&
+          appointmentForm.controls['title'].errors?.['required']
+        ) {
+          <div class="invalid-feedback">Appointment title is required.</div>
+        }
+        @if (
+          appointmentForm.controls['title'].touched &&
+          appointmentForm.controls['title'].errors?.['minlength']
+        ) {
+          <div class="invalid-feedback">Appointment title must be 3 character long.</div>
+        }
+        @if (
+          appointmentForm.controls['title'].touched &&
+          appointmentForm.controls['title'].errors?.['maxlength']
+        ) {
+          <div class="invalid-feedback">
+            Appointment title can't be more than 50 character long.
+          </div>
+        }
+      </div>
 
-    <input
-      type="text"
-      name="title"
-      id="title"
-      placeholder="Appointment Description"
-      [(ngModel)]="newAppointment.title"
-      class="p-1 w-50 m-1"
-    />
-    <input
-      type="date"
-      name="date"
-      id="date"
-      placeholder="Appointment Date"
-      /* [(ngModel)]="newAppointment.date" // Don't use this here. This will gives a warning as the date format is different than required ('yyyy-MM-dd') format*/
-      [value]="newAppointment.date | date: 'yyyy-MM-dd'"
-      (change)="onDateChange($event)"
-      class="p-1 w-50 m-1"
-    />
-    <button type="submit" (click)="addAppointment()" class="btn btn-success w-25 m-1 d-block">
-      Add
-    </button>
+      <!-- Appointment Date -->
+      <div class="mb-3">
+        <label for="date" class="form-label">Appointment Date</label>
+        <input
+          id="date"
+          type="date"
+          placeholder="Appointment Date"
+          formControlName="date"
+          class="form-control"
+          [class.is-invalid]="
+            appointmentForm.controls['date'].touched && appointmentForm.controls['date'].invalid
+          "
+          [class.is-valid]="
+            appointmentForm.controls['date'].touched && appointmentForm.controls['date'].valid
+          "
+        />
+        @if (
+          appointmentForm.controls['date'].touched &&
+          appointmentForm.controls['date'].errors?.['required']
+        ) {
+          <div class="invalid-feedback">Appointment date is required.</div>
+        }
+      </div>
+
+      <!-- Appointment Time -->
+      <div class="mb-3">
+        <label for="startTime" class="form-label"
+          >Appointment Time
+          <app-info-tooltip
+            text="Please choose the time your appointment begins."
+            tooltipId="start-time-help"
+          />
+        </label>
+
+        <input
+          id="startTime"
+          type="time"
+          class="form-control"
+          formControlName="startTime"
+          placeholder="Appointment Time"
+          [class.is-invalid]="
+            appointmentForm.controls['startTime'].touched &&
+            appointmentForm.controls['startTime'].invalid
+          "
+          [class.is-valid]="
+            appointmentForm.controls['startTime'].touched &&
+            appointmentForm.controls['startTime'].valid
+          "
+        />
+        @if (
+          appointmentForm.controls['startTime'].touched &&
+          appointmentForm.controls['startTime'].errors?.['required']
+        ) {
+          <div class="invalid-feedback">Appointment time is required.</div>
+        }
+      </div>
+
+      <!-- Appointment Guest Name -->
+      <div class="mb-3">
+        <label for="name" class="form-label">Guest Name</label>
+        <input
+          id="name"
+          type="text"
+          placeholder="Guest Name"
+          formControlName="name"
+          class="form-control"
+          [class.is-invalid]="
+            appointmentForm.controls['name'].touched && appointmentForm.controls['name'].invalid
+          "
+          [class.is-valid]="
+            appointmentForm.controls['name'].touched && appointmentForm.controls['name'].valid
+          "
+        />
+        @if (
+          appointmentForm.controls['name'].touched &&
+          appointmentForm.controls['name'].errors?.['required']
+        ) {
+          <div class="invalid-feedback">Guest name is required.</div>
+        }
+        @if (
+          appointmentForm.controls['name'].touched &&
+          appointmentForm.controls['name'].errors?.['minlength']
+        ) {
+          <div class="invalid-feedback">Guest name must be 3 character long.</div>
+        }
+        @if (
+          appointmentForm.controls['name'].touched &&
+          appointmentForm.controls['name'].errors?.['maxlength']
+        ) {
+          <div class="invalid-feedback">Guest name can't be more than 50 character long.</div>
+        }
+      </div>
+
+      <!-- Appointment Guest Email -->
+      <div class="mb-3">
+        <label for="email" class="form-label"
+          >Guest Email
+          <app-info-tooltip
+            text="Please enter only gmail, outlook or yahoo emails."
+            tooltipId="guest-email-help"
+          />
+        </label>
+        <input
+          id="email"
+          type="email"
+          placeholder="Guest Email"
+          formControlName="email"
+          class="form-control"
+          [class.is-invalid]="
+            appointmentForm.controls['email'].touched && appointmentForm.controls['email'].invalid
+          "
+          [class.is-valid]="
+            appointmentForm.controls['email'].touched && appointmentForm.controls['email'].valid
+          "
+        />
+        @if (
+          appointmentForm.controls['email'].touched &&
+          appointmentForm.controls['email'].errors?.['required']
+        ) {
+          <div class="invalid-feedback">Guest email is required.</div>
+        }
+        @if (
+          appointmentForm.controls['email'].touched &&
+          (appointmentForm.controls['email'].errors?.['email'] ||
+            appointmentForm.controls['email'].errors?.['pattern'])
+        ) {
+          <div class="invalid-feedback">Please enter an valid email.</div>
+        }
+      </div>
+
+      <!-- Appointment Guest Phone -->
+      <div class="mb-3">
+        <label for="phone" class="form-label"
+          >Guest Phone
+          <app-info-tooltip
+            text="Please don't include the country code."
+            tooltipId="guest-phone-help"
+          />
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          placeholder="Guest Phone"
+          formControlName="phone"
+          class="form-control"
+          inputmode="numeric"
+          maxlength="11"
+          (input)="onPhoneInput($event)"
+          [class.is-invalid]="
+            appointmentForm.controls['phone'].touched && appointmentForm.controls['phone'].invalid
+          "
+          [class.is-valid]="
+            appointmentForm.controls['phone'].touched && appointmentForm.controls['phone'].valid
+          "
+        />
+        @if (
+          appointmentForm.controls['phone'].touched &&
+          appointmentForm.controls['phone'].errors?.['required']
+        ) {
+          <div class="invalid-feedback">Guest phone number is required.</div>
+        }
+        @if (
+          appointmentForm.controls['phone'].touched &&
+          appointmentForm.controls['phone'].errors?.['pattern']
+        ) {
+          <div class="invalid-feedback">Enter 10 or 11 digits only.</div>
+        }
+      </div>
+
+      <!-- Appointment Submit -->
+      <div class="d-flex justify-content-center mt-4">
+        <button type="submit" class="btn btn-success w-50" [disabled]="appointmentForm.invalid">
+          Add
+        </button>
+      </div>
+    </form>
   </div>
 </div>
