@@ -9,6 +9,7 @@ import {
 } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { InfoTooltip } from '../../Components/info-tooltip/info-tooltip';
+import { AppointmentService } from '../../Services/appointment.service';
 
 @Component({
   selector: 'app-appointment',
@@ -17,15 +18,16 @@ import { InfoTooltip } from '../../Components/info-tooltip/info-tooltip';
   styleUrl: './appointments.scss',
 })
 export class Appointments implements OnInit {
-  private STORAGE_KEY: string = 'appointments';
-
   appointments: Appointment[] = [];
   appointmentForm: FormGroup = new FormGroup({});
 
-  constructor(private formBuilder: FormBuilder) {}
+  constructor(
+    private formBuilder: FormBuilder,
+    private appointmentService: AppointmentService,
+  ) {}
 
   ngOnInit(): void {
-    this.appointments = this.retrieve();
+    this.appointments = this.appointmentService.getAll();
     this.appointmentForm = this.formBuilder.group({
       title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
       date: ['', Validators.required],
@@ -57,42 +59,19 @@ export class Appointments implements OnInit {
       return;
     }
 
-    const appointment: Appointment = {
-      id: Date.now(),
-      title: this.appointmentForm.get('title')?.value,
-      date: this.appointmentForm.get('date')?.value,
-      startTime: this.appointmentForm.get('startTime')?.value,
-      name: this.appointmentForm.get('name')?.value,
-      email: this.appointmentForm.get('email')?.value,
-      phone: this.appointmentForm.get('phone')?.value,
-    };
-
-    this.appointments.push(appointment);
-    this.store();
+    const appointment = this.appointmentForm.value;
+    this.appointmentService.add(appointment);
     this.resetForm();
+    this.appointments = this.appointmentService.getAll();
   }
 
-  deleteAppointment(index: number) {
-    this.appointments.splice(index, 1);
-    this.store();
+  deleteAppointment(id: number) {
+    this.appointmentService.delete(id);
+    this.appointments = this.appointmentService.getAll();
   }
 
   private resetForm(): void {
     this.appointmentForm.markAsUntouched();
     this.appointmentForm.reset();
-  }
-
-  private store(): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.appointments));
-  }
-
-  private retrieve(): Appointment[] {
-    const jsonData = localStorage.getItem(this.STORAGE_KEY);
-
-    if (jsonData) {
-      return JSON.parse(jsonData) as Appointment[];
-    }
-
-    return [];
   }
 }
