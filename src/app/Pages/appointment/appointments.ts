@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Appointment } from '../../Models/appointment';
 import {
   FormBuilder,
@@ -10,6 +10,7 @@ import {
 import { DatePipe } from '@angular/common';
 import { InfoTooltip } from '../../Components/info-tooltip/info-tooltip';
 import { AppointmentService } from '../../Services/appointment.service';
+import { Modal } from 'bootstrap';
 
 @Component({
   selector: 'app-appointment',
@@ -18,6 +19,12 @@ import { AppointmentService } from '../../Services/appointment.service';
   styleUrl: './appointments.scss',
 })
 export class Appointments implements OnInit {
+  @ViewChild('confirmDeleteModal')
+  deleteModalElement!: ElementRef<HTMLElement>;
+
+  private deleteModalInstance?: Modal;
+  private selectedAppointmentId?: number;
+
   appointments: Appointment[] = [];
   appointmentForm: FormGroup = new FormGroup({});
 
@@ -65,9 +72,25 @@ export class Appointments implements OnInit {
     this.appointments = this.appointmentService.getAll();
   }
 
-  deleteAppointment(id: number) {
-    this.appointmentService.delete(id);
+  openDeleteModal(id: number): void {
+    this.selectedAppointmentId = id;
+
+    this.deleteModalInstance ??= new Modal(this.deleteModalElement.nativeElement);
+    this.deleteModalInstance.show();
+  }
+
+  confirmDelete(): void {
+    if (this.selectedAppointmentId == null) {
+      return;
+    }
+
+    this.appointmentService.delete(this.selectedAppointmentId);
     this.appointments = this.appointmentService.getAll();
+    this.deleteModalInstance?.hide();
+  }
+
+  closeDeleteModal(): void {
+    this.deleteModalInstance?.hide();
   }
 
   private resetForm(): void {
