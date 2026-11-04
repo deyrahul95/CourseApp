@@ -40,7 +40,7 @@ export class Appointments implements OnInit {
   ngOnInit(): void {
     this.appointments = this.appointmentService.getAll();
     this.appointmentForm = this.formBuilder.group({
-      id: [''],
+      id: ['', this.isEditing ? [Validators.required] : []],
       title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
       date: ['', Validators.required],
       startTime: ['', Validators.required],
