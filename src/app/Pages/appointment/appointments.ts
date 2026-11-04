@@ -21,8 +21,11 @@ import { Modal } from 'bootstrap';
 export class Appointments implements OnInit {
   @ViewChild('confirmDeleteModal')
   deleteModalElement!: ElementRef<HTMLElement>;
+  @ViewChild('appointmentModal')
+  appointmentModalElement!: ElementRef<HTMLElement>;
 
   private deleteModalInstance?: Modal;
+  private appointmentModalInstance?: Modal;
   private selectedAppointmentId?: number;
 
   appointments: Appointment[] = [];
@@ -60,7 +63,7 @@ export class Appointments implements OnInit {
     this.appointmentForm.controls['phone'].setValue(digitsOnly);
   }
 
-  onSubmit(): void {
+  submitAppointment(): void {
     if (this.appointmentForm.invalid) {
       alert('Please enter all required fields.');
       return;
@@ -70,6 +73,7 @@ export class Appointments implements OnInit {
     this.appointmentService.add(appointment);
     this.resetForm();
     this.appointments = this.appointmentService.getAll();
+    this.appointmentModalInstance?.hide();
   }
 
   openDeleteModal(id: number): void {
@@ -79,8 +83,19 @@ export class Appointments implements OnInit {
     this.deleteModalInstance.show();
   }
 
+  openAppointModal(id: number | null): void {
+    if (id) {
+      this.selectedAppointmentId = id;
+    } else {
+      this.resetForm();
+    }
+
+    this.appointmentModalInstance ??= new Modal(this.appointmentModalElement.nativeElement);
+    this.appointmentModalInstance.show();
+  }
+
   confirmDelete(): void {
-    if (this.selectedAppointmentId == null) {
+    if (!this.selectedAppointmentId) {
       return;
     }
 
@@ -91,6 +106,12 @@ export class Appointments implements OnInit {
 
   closeDeleteModal(): void {
     this.deleteModalInstance?.hide();
+    this.selectedAppointmentId = undefined;
+  }
+
+  closeAppointmentModal(): void {
+    this.resetForm();
+    this.appointmentModalInstance?.hide();
   }
 
   private resetForm(): void {
