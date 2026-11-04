@@ -2,5 +2,8 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
 
-bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+import { seedLocalStorage } from './app/seed-local-storage';
+
+seedLocalStorage();
+
+bootstrapApplication(App, appConfig).catch((err) => console.error(err));
