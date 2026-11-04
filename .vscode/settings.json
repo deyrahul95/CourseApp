@@ -12,7 +12,8 @@
     },
     "cSpell.words": [
         "fontawesome",
-        "Linkedin"
+        "Linkedin",
+        "toastr"
     ],
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"

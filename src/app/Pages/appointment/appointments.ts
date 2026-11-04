@@ -30,6 +30,7 @@ export class Appointments implements OnInit {
 
   appointments: Appointment[] = [];
   appointmentForm: FormGroup = new FormGroup({});
+  isEditing: boolean = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -39,6 +40,7 @@ export class Appointments implements OnInit {
   ngOnInit(): void {
     this.appointments = this.appointmentService.getAll();
     this.appointmentForm = this.formBuilder.group({
+      id: [''],
       title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
       date: ['', Validators.required],
       startTime: ['', Validators.required],
@@ -70,8 +72,13 @@ export class Appointments implements OnInit {
     }
 
     const appointment = this.appointmentForm.value;
-    this.appointmentService.add(appointment);
+    if (this.selectedAppointmentId) {
+      this.appointmentService.update(appointment);
+    } else {
+      this.appointmentService.add(appointment);
+    }
     this.resetForm();
+    this.selectedAppointmentId = undefined;
     this.appointments = this.appointmentService.getAll();
     this.appointmentModalInstance?.hide();
   }
@@ -85,7 +92,15 @@ export class Appointments implements OnInit {
 
   openAppointModal(id: number | null): void {
     if (id) {
+      const appointment = this.appointmentService.get(id);
+      if (!appointment) {
+        alert(`No Appointment found with id ${id} in our database`);
+        return;
+      }
+
       this.selectedAppointmentId = id;
+      this.isEditing = true;
+      this.appointmentForm.setValue(appointment);
     } else {
       this.resetForm();
     }
@@ -105,12 +120,13 @@ export class Appointments implements OnInit {
   }
 
   closeDeleteModal(): void {
-    this.deleteModalInstance?.hide();
     this.selectedAppointmentId = undefined;
+    this.deleteModalInstance?.hide();
   }
 
   closeAppointmentModal(): void {
     this.resetForm();
+    this.selectedAppointmentId = undefined;
     this.appointmentModalInstance?.hide();
   }
 
