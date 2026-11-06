@@ -1,62 +1,40 @@
-import { Service } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { Appointment } from '../Models/appointment';
+import { environment } from '../../environments/environment.development';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Service()
 export class AppointmentService {
-  private STORAGE_KEY: string = 'appointments';
-  private appointments: Appointment[] = [];
+  private http = inject(HttpClient);
 
-  constructor() {
-    this.appointments = this.retrieve();
+  private apiUrl: string = `${environment.serverUrl}/appointments`;
+
+  getAll(): Observable<Appointment[]> {
+    return this.http.get<Appointment[]>(this.apiUrl);
   }
 
-  getAll(): Appointment[] {
-    return this.appointments;
+  get(id: number): Observable<Appointment> {
+    return this.http.get<Appointment>(this.apiUrl + `/${id}`);
   }
 
-  get(id: number): Appointment | null {
-    return this.appointments.find((app) => app.id === id) ?? null;
+  add(appointment: Appointment): Observable<void> {
+    return this.http.post<void>(this.apiUrl, appointment, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   }
 
-  add(appointment: Appointment): void {
-    appointment.id = this.generateUniqueId();
-    this.appointments.push(appointment);
-    this.store();
+  update(appointment: Appointment): Observable<void> {
+    return this.http.put<void>(this.apiUrl + `/${appointment.id}`, appointment, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   }
 
-  update(appointment: Appointment): void {
-    const index = this.appointments.findIndex((app) => app.id === appointment.id);
-
-    if (index !== -1) {
-      this.appointments[index] = appointment;
-      this.store();
-    }
-  }
-
-  delete(id: number): void {
-    const index = this.appointments.findIndex((app) => app.id === id);
-
-    if (index !== -1) {
-      this.appointments.splice(index, 1);
-      this.store();
-    }
-  }
-
-  private generateUniqueId(): number {
-    return Date.now();
-  }
-
-  private store(): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.appointments));
-  }
-
-  private retrieve(): Appointment[] {
-    const jsonData = localStorage.getItem(this.STORAGE_KEY);
-
-    if (jsonData) {
-      return JSON.parse(jsonData) as Appointment[];
-    }
-
-    return [];
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(this.apiUrl + `/${id}`);
   }
 }

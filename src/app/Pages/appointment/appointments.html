@@ -1,3 +1,11 @@
+@if (isLoading()) {
+  <!-- Loading State -->
+  <div class="loading-overlay" role="status" aria-live="polite">
+    <div class="spinner-grow text-primary" aria-hidden="true"></div>
+    <span class="visually-hidden">Loading...</span>
+  </div>
+}
+
 <div class="container my-3">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="text-primary">Current Appointments</h2>
@@ -7,9 +15,9 @@
     </button>
   </div>
 
-  @if (appointments.length > 0) {
+  @if (appointments().length > 0) {
     <!-- Appointments Table -->
-    <table class="table table-light table-striped border">
+    <table class="table table-striped border">
       <thead>
         <tr>
           <th scope="col">Id</th>
@@ -23,7 +31,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (item of appointments; track $index) {
+        @for (item of appointments(); track $index) {
           <tr>
             <th scope="col">{{ item.id }}</th>
             <td>{{ item.title }}</td>
@@ -99,7 +107,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5 text-primary fw-bold" id="appointmentModalLabel">
-          {{ isEditing ? 'Update ' : 'Create ' }} Appointment
+          {{ isEditing() ? 'Update ' : 'Create ' }} Appointment
         </h1>
         <button
           type="button"
@@ -343,7 +351,7 @@
           (click)="submitAppointment()"
           [disabled]="appointmentForm.invalid"
         >
-          {{ isEditing ? 'Update' : 'Create' }}
+          {{ isEditing() ? 'Update' : 'Create' }}
         </button>
       </div>
     </div>

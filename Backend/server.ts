@@ -14,6 +14,8 @@ interface Appointment {
 }
 
 const PORT = 3000;
+const MIN_DELAY_MS = 200;
+const MAX_DELAY_MS = 1200;
 let nextId = 104;
 
 let appointments: Appointment[] = [
@@ -56,13 +58,21 @@ function log(event: string, details: Record<string, unknown> = {}): void {
   );
 }
 
-function sendJson(
+function randomDelay(): Promise<void> {
+  const delayMs = Math.floor(Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS + 1)) + MIN_DELAY_MS;
+
+  return new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
+async function sendJson(
   res: ServerResponse,
   requestId: string,
   statusCode: number,
   data: unknown,
   startedAt: number,
-): void {
+): Promise<void> {
+  await randomDelay();
+
   const responseBody = JSON.stringify(data);
 
   log('response', {
@@ -139,20 +149,20 @@ const server = createServer(async (req: any, res: any) => {
   const parts = url.pathname.split('/').filter(Boolean);
 
   if (parts[0] !== 'api' || parts[1] !== 'appointments' || parts.length > 3) {
-    sendJson(res, requestId, 404, { error: 'Route not found' }, startedAt);
+    await sendJson(res, requestId, 404, { error: 'Route not found' }, startedAt);
     return;
   }
 
   const id = parts.length === 3 ? Number(parts[2]) : null;
 
   if (id !== null && (!Number.isInteger(id) || id < 1)) {
-    sendJson(res, requestId, 400, { error: 'Invalid appointment ID' }, startedAt);
+    await sendJson(res, requestId, 400, { error: 'Invalid appointment ID' }, startedAt);
     return;
   }
 
   try {
     if (req.method === 'GET' && id === null) {
-      sendJson(res, requestId, 200, appointments, startedAt);
+      await sendJson(res, requestId, 200, appointments, startedAt);
       return;
     }
 
@@ -160,11 +170,11 @@ const server = createServer(async (req: any, res: any) => {
       const appointment = appointments.find((item) => item.id === id);
 
       if (!appointment) {
-        sendJson(res, requestId, 404, { error: 'Appointment not found' }, startedAt);
+        await sendJson(res, requestId, 404, { error: 'Appointment not found' }, startedAt);
         return;
       }
 
-      sendJson(res, requestId, 200, appointment, startedAt);
+      await sendJson(res, requestId, 200, appointment, startedAt);
       return;
     }
 
@@ -173,7 +183,7 @@ const server = createServer(async (req: any, res: any) => {
       const appointment: Appointment = { ...body, id: nextId++ };
 
       appointments.push(appointment);
-      sendJson(res, requestId, 201, appointment, startedAt);
+      await sendJson(res, requestId, 201, appointment, startedAt);
       return;
     }
 
@@ -181,14 +191,14 @@ const server = createServer(async (req: any, res: any) => {
       const index = appointments.findIndex((item) => item.id === id);
 
       if (index === -1) {
-        sendJson(res, requestId, 404, { error: 'Appointment not found' }, startedAt);
+        await sendJson(res, requestId, 404, { error: 'Appointment not found' }, startedAt);
         return;
       }
 
       const body = (await readJsonBody(req, requestId)) as Partial<Appointment>;
       appointments[index] = { ...appointments[index], ...body, id };
 
-      sendJson(res, requestId, 200, appointments[index], startedAt);
+      await sendJson(res, requestId, 200, appointments[index], startedAt);
       return;
     }
 
@@ -196,19 +206,19 @@ const server = createServer(async (req: any, res: any) => {
       const index = appointments.findIndex((item) => item.id === id);
 
       if (index === -1) {
-        sendJson(res, requestId, 404, { error: 'Appointment not found' }, startedAt);
+        await sendJson(res, requestId, 404, { error: 'Appointment not found' }, startedAt);
         return;
       }
 
       const [deleted] = appointments.splice(index, 1);
-      sendJson(res, requestId, 200, deleted, startedAt);
+      await sendJson(res, requestId, 200, deleted, startedAt);
       return;
     }
 
-    sendJson(res, requestId, 405, { error: 'Method not allowed' }, startedAt);
+    await sendJson(res, requestId, 405, { error: 'Method not allowed' }, startedAt);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Bad request';
-    sendJson(res, requestId, 400, { error: message }, startedAt);
+    await sendJson(res, requestId, 400, { error: message }, startedAt);
   }
 });
 

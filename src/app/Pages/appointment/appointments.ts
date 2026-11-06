@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, signal, ViewChild } from '@angular/core';
 import { Appointment } from '../../Models/appointment';
 import {
   FormBuilder,
@@ -11,6 +11,7 @@ import { DatePipe } from '@angular/common';
 import { InfoTooltip } from '../../Components/info-tooltip/info-tooltip';
 import { AppointmentService } from '../../Services/appointment.service';
 import { Modal } from 'bootstrap';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-appointment',
@@ -28,9 +29,10 @@ export class Appointments implements OnInit {
   private appointmentModalInstance?: Modal;
   private selectedAppointmentId?: number;
 
-  appointments: Appointment[] = [];
+  isLoading = signal(false);
+  appointments = signal<Appointment[]>([]);
   appointmentForm: FormGroup = new FormGroup({});
-  isEditing: boolean = false;
+  isEditing = signal(false);
 
   constructor(
     private formBuilder: FormBuilder,
@@ -38,9 +40,10 @@ export class Appointments implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.appointments = this.appointmentService.getAll();
+    this.loadAppointments();
+
     this.appointmentForm = this.formBuilder.group({
-      id: ['', this.isEditing ? [Validators.required] : []],
+      id: ['', this.isEditing() ? [Validators.required] : []],
       title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
       date: ['', Validators.required],
       startTime: ['', Validators.required],
@@ -71,16 +74,25 @@ export class Appointments implements OnInit {
       return;
     }
 
+    this.isLoading.set(true);
     const appointment = this.appointmentForm.value;
+
     if (this.selectedAppointmentId) {
-      this.appointmentService.update(appointment);
+      this.appointmentService
+        .update(appointment)
+        .pipe(finalize(() => this.isLoading.set(false)))
+        .subscribe();
     } else {
-      this.appointmentService.add(appointment);
+      this.appointmentService
+        .add(appointment)
+        .pipe(finalize(() => this.isLoading.set(false)))
+        .subscribe();
     }
+
     this.resetForm();
     this.selectedAppointmentId = undefined;
-    this.appointments = this.appointmentService.getAll();
     this.appointmentModalInstance?.hide();
+    this.loadAppointments();
   }
 
   openDeleteModal(id: number): void {
@@ -92,15 +104,21 @@ export class Appointments implements OnInit {
 
   openAppointModal(id: number | null): void {
     if (id) {
-      const appointment = this.appointmentService.get(id);
-      if (!appointment) {
-        alert(`No Appointment found with id ${id} in our database`);
-        return;
-      }
+      this.isLoading.set(true);
 
-      this.selectedAppointmentId = id;
-      this.isEditing = true;
-      this.appointmentForm.setValue(appointment);
+      this.appointmentService
+        .get(id)
+        .pipe(finalize(() => this.isLoading.set(false)))
+        .subscribe((appointment) => {
+          if (!appointment) {
+            alert(`No Appointment found with id ${id} in our database`);
+            return;
+          }
+
+          this.selectedAppointmentId = id;
+          this.isEditing.set(true);
+          this.appointmentForm.patchValue(appointment);
+        });
     } else {
       this.resetForm();
     }
@@ -113,10 +131,14 @@ export class Appointments implements OnInit {
     if (!this.selectedAppointmentId) {
       return;
     }
+    this.isLoading.set(true);
+    this.appointmentService
+      .delete(this.selectedAppointmentId)
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe();
 
-    this.appointmentService.delete(this.selectedAppointmentId);
-    this.appointments = this.appointmentService.getAll();
     this.deleteModalInstance?.hide();
+    this.loadAppointments();
   }
 
   closeDeleteModal(): void {
@@ -127,7 +149,17 @@ export class Appointments implements OnInit {
   closeAppointmentModal(): void {
     this.resetForm();
     this.selectedAppointmentId = undefined;
+    this.isEditing.set(false);
     this.appointmentModalInstance?.hide();
+  }
+
+  private loadAppointments(): void {
+    this.isLoading.set(true);
+
+    this.appointmentService
+      .getAll()
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe((data: Appointment[]) => this.appointments.set(data));
   }
 
   private resetForm(): void {

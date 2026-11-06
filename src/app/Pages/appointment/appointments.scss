@@ -14,3 +14,31 @@
     }
   }
 }
+
+[data-bs-theme='dark'] .table {
+  --bs-table-color: #f8f9fa;
+  --bs-table-bg: #212529;
+}
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // Light tint plus blur of the page behind the overlay
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+
+  .spinner-grow {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: rgba(0, 0, 0, 0.35);
+  }
+}
